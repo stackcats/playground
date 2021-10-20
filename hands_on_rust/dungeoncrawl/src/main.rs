@@ -57,6 +57,7 @@ impl GameState for State {
         ctx.cls();
         self.resouces.insert(ctx.key);
         self.systems.execute(&mut self.ecs, &mut self.resouces);
+        render_draw_buffer(ctx).expect("Render error");
     }
 }
 
