@@ -8,3 +8,15 @@ pub struct Render {
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct Player;
+
+#[derive(Clone, Copy, PartialEq, Debug)]
+pub struct Enemy;
+
+#[derive(Clone, Copy, PartialEq, Debug)]
+pub struct MovingRandomly;
+
+#[derive(Clone, Copy, PartialEq, Debug)]
+pub struct WantsToMove {
+    pub entity: Entity,
+    pub destination: Point,
+}
