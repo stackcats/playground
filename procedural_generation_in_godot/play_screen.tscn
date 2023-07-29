@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3 uid="uid://b0tey1bspbhfd"]
+
+[ext_resource type="PackedScene" uid="uid://dlujypoufhmtt" path="res://screen.tscn" id="1_jcr8g"]
+[ext_resource type="Script" path="res://play_screen.gd" id="2_beejx"]
+
+[node name="PlayScreen" instance=ExtResource("1_jcr8g")]
+script = ExtResource("2_beejx")
+
+[node name="CenterContainer" type="CenterContainer" parent="." index="0"]
+layout_mode = 2
+
+[node name="Control" type="Control" parent="CenterContainer" index="0"]
+layout_mode = 2

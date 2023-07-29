@@ -51,8 +51,8 @@ pub fn verify_token(token: String) -> Result<Session, handle_errors::Error> {
         &"RANDOM WORDS WINTER MACINTOSH PC".as_bytes(),
         &paseto::tokens::TimeBackend::Chrono,
     )
-    .map_err(|_| handle_errors::Error::CannotDecryptToken)?;
-    serde_json::from_value::<Session>(token).map_err(|_| handle_errors::Error::CannotDecryptToken)
+    .map_err(|_| handle_errors::Error::WrongPassword)?;
+    serde_json::from_value::<Session>(token).map_err(|_| handle_errors::Error::WrongPassword)
 }
 
 pub fn auth() -> impl Filter<Extract = (Session,), Error = warp::Rejection> + Clone {
