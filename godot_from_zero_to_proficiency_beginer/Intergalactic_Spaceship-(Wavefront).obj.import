@@ -1,0 +1,19 @@
+[remap]
+
+importer="wavefront_obj"
+type="Mesh"
+path="res://.import/Intergalactic_Spaceship-(Wavefront).obj-84289e9dcd876079f390aa29f82c9b19.mesh"
+
+[deps]
+
+files=[ "res://.import/Intergalactic_Spaceship-(Wavefront).obj-84289e9dcd876079f390aa29f82c9b19.mesh" ]
+
+source_file="res://Intergalactic_Spaceship-(Wavefront).obj"
+dest_files=[ "res://.import/Intergalactic_Spaceship-(Wavefront).obj-84289e9dcd876079f390aa29f82c9b19.mesh", "res://.import/Intergalactic_Spaceship-(Wavefront).obj-84289e9dcd876079f390aa29f82c9b19.mesh" ]
+
+[params]
+
+generate_tangents=true
+scale_mesh=Vector3( 1, 1, 1 )
+offset_mesh=Vector3( 0, 0, 0 )
+optimize_mesh=true
