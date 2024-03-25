@@ -1,156 +1,199 @@
-import 'package:flame/components.dart';
-import 'package:flame/events.dart';
-import 'package:flame/flame.dart';
-import 'package:flame/sprite.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:game/utils/create_animation_by_limit.dart';
+import 'dart:ui';
+
+import 'meteor_component.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-class PlayerImageSpriteComponent extends SpriteAnimationComponent
-    with HasGameReference, KeyboardHandler, TapCallbacks {
-  late double screenWidth;
-  late double screenHeight;
+import 'package:flame/collisions.dart';
+import 'package:flame/sprite.dart';
+import 'package:flame/flame.dart';
+import 'package:flame/components.dart';
+import 'ground.dart';
 
-  late double centerX;
-  late double centerY;
+import 'character.dart';
+import 'package:game/utils/create_animation_by_limit.dart';
 
-  final double spriteWidth = 680;
-  final double spriteHeight = 472;
+class PlayerComponent extends Character with HasGameReference {
+  int count = 0;
 
-  late SpriteAnimation deadAnimation;
-  late SpriteAnimation idleAnimation;
-  late SpriteAnimation jumpAnimation;
-  late SpriteAnimation runAnimation;
-  late SpriteAnimation walkAnimation;
-
-  late List<SpriteAnimation> animations = [];
-
-  bool right = true;
-
-  int animationIndex = 0;
+  Vector2 mapSize;
+  PlayerComponent({required this.mapSize});
 
   @override
-  void onLoad() async {
-    // sprite = await Sprite.load('tiger.png');
-    super.onLoad();
+  Future<void>? onLoad() async {
     anchor = Anchor.center;
+    debugMode = true;
 
-    final spriteImage = await Flame.images.load("dinofull.png");
+    final spriteImage = await Flame.images.load('dinofull.png');
     final spriteSheet = SpriteSheet(
-      image: spriteImage,
-      srcSize: Vector2(spriteWidth, spriteHeight),
-    );
+        image: spriteImage,
+        srcSize: Vector2(spriteSheetWidth, spriteSheetHeight));
 
-    const sizeX = 6;
-
+    // init animation
     deadAnimation = spriteSheet.createAnimationByLimit(
-      xInit: 0,
-      yInit: 0,
-      step: 8,
-      sizeX: sizeX,
-      stepTime: 0.08,
-    );
-
+        xInit: 0, yInit: 0, step: 8, sizeX: 5, stepTime: .08);
     idleAnimation = spriteSheet.createAnimationByLimit(
-      xInit: 1,
-      yInit: 2,
-      step: 10,
-      sizeX: sizeX,
-      stepTime: 0.08,
-    );
-
+        xInit: 1, yInit: 2, step: 10, sizeX: 5, stepTime: .08);
     jumpAnimation = spriteSheet.createAnimationByLimit(
-      xInit: 3,
-      yInit: 0,
-      step: 12,
-      sizeX: sizeX,
-      stepTime: 0.08,
-    );
-
+        xInit: 3, yInit: 0, step: 12, sizeX: 5, stepTime: .08);
     runAnimation = spriteSheet.createAnimationByLimit(
-      xInit: 5,
-      yInit: 0,
-      step: 8,
-      sizeX: sizeX,
-      stepTime: 0.08,
-    );
-
+        xInit: 5, yInit: 0, step: 8, sizeX: 5, stepTime: .08);
     walkAnimation = spriteSheet.createAnimationByLimit(
-      xInit: 6,
-      yInit: 2,
-      step: 10,
-      sizeX: sizeX,
-      stepTime: 0.08,
-    );
-
-    animations = <SpriteAnimation>[
-      deadAnimation,
-      idleAnimation,
-      jumpAnimation,
-      walkAnimation,
-      runAnimation
-    ];
+        xInit: 6, yInit: 2, step: 10, sizeX: 5, stepTime: .08);
+    walkSlowAnimation = spriteSheet.createAnimationByLimit(
+        xInit: 6, yInit: 2, step: 10, sizeX: 5, stepTime: .32);
+    // end animation
 
     animation = idleAnimation;
 
     screenWidth = game.size.x;
     screenHeight = game.size.y;
 
-    size = Vector2(spriteWidth, spriteHeight);
-    centerX = screenWidth / 2;
-    centerY = screenHeight / 2;
+    size = Vector2(spriteSheetWidth / 4, spriteSheetHeight / 4);
+
+    centerX = (screenWidth / 2) - (spriteSheetWidth / 2);
+    centerY = (screenHeight / 2) - (spriteSheetHeight / 2);
+
     position = Vector2(centerX, centerY);
+
+    add(RectangleHitbox(
+        size: Vector2(spriteSheetWidth / 4 - 70, spriteSheetHeight / 4),
+        position: Vector2(25, 0)));
+
+    return super.onLoad();
   }
 
   @override
-  void update(double dt) {
-    // position = Vector2(centerX++, centerY++);
-    super.update(dt);
-  }
-
-  @override
-  bool onKeyEvent(
-    RawKeyEvent event,
-    Set<LogicalKeyboardKey> keysPressed,
-  ) {
+  bool onKeyEvent(RawKeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
     if (keysPressed.isEmpty) {
       animation = idleAnimation;
     }
-    if (keysPressed.contains(LogicalKeyboardKey.arrowUp) ||
-        keysPressed.contains(LogicalKeyboardKey.keyW)) {
-    } else if (keysPressed.contains(LogicalKeyboardKey.arrowDown) ||
-        keysPressed.contains(LogicalKeyboardKey.keyS)) {
-    } else if (keysPressed.contains(LogicalKeyboardKey.arrowLeft) ||
-        keysPressed.contains(LogicalKeyboardKey.keyA)) {
-      position.x -= 80;
-      if (right) {
-        flipHorizontally();
+
+    //***X */
+    // correr
+    if ((keysPressed.contains(LogicalKeyboardKey.arrowRight) ||
+            keysPressed.contains(LogicalKeyboardKey.keyD)) &&
+        keysPressed.contains(LogicalKeyboardKey.shiftLeft)) {
+      playerSpeed = 1500;
+
+      if (!right) flipHorizontally();
+      right = true;
+
+      if (!collisionXRight) {
+        animation = runAnimation;
+        posX++;
+      } else {
+        animation = walkSlowAnimation;
       }
-      right = false;
-      animation = walkAnimation;
     } else if (keysPressed.contains(LogicalKeyboardKey.arrowRight) ||
         keysPressed.contains(LogicalKeyboardKey.keyD)) {
-      position.x += 80;
-      if (!right) {
-        flipHorizontally();
-      }
+      playerSpeed = 500;
+      if (!right) flipHorizontally();
       right = true;
-      animation = walkAnimation;
+
+      if (!collisionXRight) {
+        animation = walkAnimation;
+        posX++;
+      } else {
+        animation = walkSlowAnimation;
+      }
     }
+
+    if ((keysPressed.contains(LogicalKeyboardKey.arrowLeft) ||
+            keysPressed.contains(LogicalKeyboardKey.keyA)) &&
+        keysPressed.contains(LogicalKeyboardKey.shiftLeft)) {
+      playerSpeed = 1500;
+
+      if (right) flipHorizontally();
+      right = false;
+
+      if (!collisionXLeft) {
+        animation = runAnimation;
+        posX--;
+      } else {
+        animation = walkSlowAnimation;
+      }
+    } else if (keysPressed.contains(LogicalKeyboardKey.arrowLeft) ||
+        keysPressed.contains(LogicalKeyboardKey.keyA)) {
+      playerSpeed = 500;
+
+      if (right) flipHorizontally();
+      right = false;
+
+      if (!collisionXLeft) {
+        animation = walkAnimation;
+        posX--;
+      } else {
+        animation = walkSlowAnimation;
+      }
+    }
+
+    //***Y */
+    if ((keysPressed.contains(LogicalKeyboardKey.arrowUp) ||
+            keysPressed.contains(LogicalKeyboardKey.keyW)) &&
+        inGround) {
+      animation = walkAnimation;
+      velocity.y = -jumpForce;
+      position.y -= 15;
+
+      animation = jumpAnimation;
+    }
+    // if (keysPressed.contains(LogicalKeyboardKey.arrowDown) ||
+    //     keysPressed.contains(LogicalKeyboardKey.keyS)) {
+    //   animation = walkAnimation;
+
+    //   posY++;
+    // }
+
     return true;
   }
 
   @override
-  void onTapDown(TapDownEvent event) {
-    print("tap down ${event}");
-    super.onTapDown(event);
-    animationIndex = (animationIndex + 1) % animations.length;
-    animation = animations[animationIndex];
+  void update(double dt) {
+    position.x += playerSpeed * dt * posX;
+    posX = 0;
+    posY = 0;
+
+    if (!inGround) {
+      // en el aire
+      velocity.y += gravity;
+      position.y += velocity.y * dt;
+    }
+    super.update(dt);
   }
 
   @override
-  void onTapUp(TapUpEvent event) {
-    print("tap down ${event}");
-    super.onTapUp(event);
+  void onCollision(Set<Vector2> points, PositionComponent other) {
+    if (other is ScreenHitbox) {
+      if (points.first[0] <= 0.0) {
+        // left
+        collisionXLeft = true;
+      } else if (points.first[0] >= mapSize.x) {
+        // left
+        collisionXRight = true;
+      }
+    }
+
+    if (other is MeteorComponent) {
+      count++;
+
+      other.hitbox.removeFromParent();
+      //other.removeFromParent();
+
+      print('meteorito');
+    }
+
+    if (other is Ground) {
+      inGround = true;
+    }
+
+    super.onCollision(points, other);
+  }
+
+  @override
+  void onCollisionEnd(PositionComponent other) {
+    collisionXLeft = collisionXRight = false;
+    inGround = false;
+    super.onCollisionEnd(other);
   }
 }
